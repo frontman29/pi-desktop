@@ -14,6 +14,13 @@ import { i18n } from '../../shared/i18n'
 const READ_ONLY_TOOLS = 'read,grep,find,ls'
 const OMP_READ_ONLY_TOOLS = 'read,grep,glob'
 
+// The Hexmorph website workspace. It renders its dashboard, agent table, connection
+// view and project selector through Pi's RPC extension UI, which this app already
+// handles. It is a view over the Hexmorph controller: this app grants it no
+// authority, and it fails closed when no owner identity is configured.
+const HEXMORPH_EXTENSION_PATH =
+  process.env.HEXMORPH_EXTENSION ?? '/home/rob/Documents/pi/dist/server/pi-extension/entry.js'
+
 const PERMISSIONS_EXTENSION_PATH = app.isPackaged
   ? join(process.resourcesPath, 'resources', 'pi-desktop-permissions.ts')
   : join(app.getAppPath(), 'resources', 'pi-desktop-permissions.ts')
@@ -87,6 +94,9 @@ export function applyPermissionModeToStartOptions(
   const globalRulesPath = getGlobalPermissionRulesPath()
   if (existsSync(PERMISSIONS_EXTENSION_PATH)) {
     args.push('-e', PERMISSIONS_EXTENSION_PATH)
+  }
+  if (existsSync(HEXMORPH_EXTENSION_PATH)) {
+    args.push('-e', HEXMORPH_EXTENSION_PATH)
   }
 
   return {
