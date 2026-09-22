@@ -25,6 +25,7 @@ import {
   Stethoscope,
   Pencil,
   Workflow as WorkflowIcon,
+  Boxes,
 } from 'lucide-react'
 import { useMemo, useState, useRef } from 'react'
 import { StatusPopover } from './status-popover'
@@ -570,6 +571,16 @@ export function Sidebar(): React.JSX.Element {
                 setCurrentView('mission-control')
               }}
               title={t('sidebar.nav.missionControlTitle')}
+            />
+            <SidebarItem
+              icon={<Boxes size={14} />}
+              label="Hexmorph"
+              active={currentView === 'hexmorph'}
+              onClick={() => {
+                setWorkflowPanelOpen(false)
+                setCurrentView('hexmorph')
+              }}
+              title="Agent workspace: projects, agents, jobs and candidates"
             />
             <SidebarItem
               icon={<WorkflowIcon size={14} />}

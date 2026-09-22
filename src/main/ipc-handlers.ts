@@ -16,6 +16,7 @@ import { registerPackageHandlers } from './ipc/package-handlers'
 import { registerSkillsMcpHandlers } from './ipc/skills-mcp-handlers'
 import { registerModelsConfigHandlers } from './ipc/models-config-handlers'
 import { registerCouncilHandlers } from './ipc/council-handlers'
+import { registerHexmorphHandlers } from './ipc/hexmorph-handlers'
 import { registerTagHandlers } from './ipc/tag-handlers'
 import { registerNotesHandlers } from './ipc/notes-handlers'
 import { registerFileHandlers } from './ipc/file-handlers'
@@ -59,6 +60,7 @@ export function registerIpcHandlers(
   registerSkillsMcpHandlers(ctx)
   registerModelsConfigHandlers(ctx)
   registerCouncilHandlers(ctx)
+  registerHexmorphHandlers()
   registerTagHandlers(ctx)
   registerNotesHandlers(ctx)
   registerFileHandlers(ctx)

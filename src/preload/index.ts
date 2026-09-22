@@ -31,6 +31,9 @@ import type {
   ModelsConfig,
   ModelsReadResult,
   CouncilDetectResult,
+  HexmorphState,
+  HexmorphDispatchResult,
+  HexmorphPreviewResult,
   CouncilRunRequest,
   CouncilRunResult,
   CouncilArbiterRequest,
@@ -209,6 +212,16 @@ interface PiDesktopAPI {
     write(config: ModelsConfig): Promise<{ success: boolean; error?: string }>
   }
 
+  hexmorph: {
+    /** Read the whole workspace: projects, agents, jobs, events, readiness. */
+    state(projectId?: string | null): Promise<HexmorphState>
+    selectProject(projectId: string): Promise<HexmorphState>
+    /** Refresh providers and models from the owner's own Pi login. */
+    connect(): Promise<{ providers: string[]; models: number; version: number }>
+    dispatch(projectId: string, request: string): Promise<HexmorphDispatchResult>
+    preview(projectId: string, action: 'start' | 'stop'): Promise<HexmorphPreviewResult>
+  }
+
   council: {
     detect(): Promise<CouncilDetectResult>
     runConsultants(payload: CouncilRunRequest): Promise<CouncilRunResult>
@@ -354,6 +367,14 @@ interface PiDesktopAPI {
 // ─── Implementation ──────────────────────────────────────────────────────────
 
 const api: PiDesktopAPI = {
+  hexmorph: {
+    state: (projectId?: string | null) => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_STATE, { projectId: projectId ?? null }),
+    selectProject: (projectId: string) => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_SELECT_PROJECT, { projectId }),
+    connect: () => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_CONNECT),
+    dispatch: (projectId: string, request: string) => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_DISPATCH, { projectId, request }),
+    preview: (projectId: string, action: 'start' | 'stop') => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_PREVIEW, { projectId, action }),
+  },
+
   pi: {
     start: (options?: PiStartOptions) => ipcRenderer.invoke(IPC_CHANNELS.PI_START, options),
     stop: () => ipcRenderer.invoke(IPC_CHANNELS.PI_STOP),

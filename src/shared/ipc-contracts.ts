@@ -195,6 +195,12 @@ export const IPC_CHANNELS = {
   EVENT_TERMINAL_DATA: 'event:terminal-data',
   EVENT_TERMINAL_EXIT: 'event:terminal-exit',
   EVENT_COUNCIL_PROGRESS: 'event:council-progress',
+  // Hexmorph workspace: the agent organization, its jobs and its candidates.
+  HEXMORPH_STATE: 'hexmorph:state',
+  HEXMORPH_SELECT_PROJECT: 'hexmorph:select-project',
+  HEXMORPH_CONNECT: 'hexmorph:connect',
+  HEXMORPH_DISPATCH: 'hexmorph:dispatch',
+  HEXMORPH_PREVIEW: 'hexmorph:preview',
 } as const
 
 // ─── Pi Process Types ───────────────────────────────────────────────────────
@@ -1533,4 +1539,101 @@ export interface TimelineEvent {
   detail?: string
   status?: 'running' | 'success' | 'error' | 'cancelled'
   metadata?: Record<string, unknown>
+}
+
+
+/** A project the owner can work on. Selection is a view choice, not authority. */
+export interface HexmorphProject {
+  projectId: string
+  selected: boolean
+  hasDraft: boolean
+  revision: number | null
+  source: string | null
+  runs: number
+  activeRuns: number
+}
+
+/** One of the eleven agent roles and the route that would actually run it. */
+export interface HexmorphRole {
+  roleId: string
+  slot: string
+  toolProfile: string
+  reviewer: boolean
+  binding: { runner: string; provider: string; model: string } | null
+  effective: { runner: string; provider: string; model: string } | null
+  source: 'role' | 'workspace' | 'slot' | 'none'
+  pending: { application: string; binding: { runner: string; model: string } } | null
+}
+
+export interface HexmorphRun {
+  runId: string
+  jobId: string
+  state: string
+  operations: number
+  cursor: number
+  active: boolean
+}
+
+export interface HexmorphEvent {
+  at: number
+  runId: string
+  kind: string
+  sequence: number
+  detail: string
+}
+
+export interface HexmorphTreeNode {
+  name: string
+  kind: 'folder' | 'page' | 'asset'
+  detail?: string
+  id?: string
+  children?: HexmorphTreeNode[]
+}
+
+export interface HexmorphReadiness {
+  connectionsVersion: number
+  connections: number
+  readyConnections: number
+  catalogEntries: number
+  runners: Array<{ runner: string; approvedVersion: string; state: string; reason: string }>
+  engine: 'available' | 'unavailable' | 'unprobed'
+  /** Plain-language blockers. Empty means every checked dependency is ready. */
+  missing: string[]
+}
+
+/** Everything the Hexmorph panel renders, read from the controller in one pass. */
+export interface HexmorphState {
+  ownerId: string
+  projectId: string | null
+  projects: HexmorphProject[]
+  roles: HexmorphRole[]
+  runs: HexmorphRun[]
+  draft: { revision: number; source: string; detached: true } | null
+  readiness: HexmorphReadiness
+  connections: Array<{ id: string; provider: string; state: string; allowedProjectIds: string[] }>
+  activity: { runs: number; active: number; succeeded: number; failed: number; cancelled: number; operations: number }
+  events: HexmorphEvent[]
+  tree: HexmorphTreeNode[]
+  preview: { url: string; revision: number; image: string } | null
+  readAt: number
+}
+
+export interface HexmorphDispatchResult {
+  runId: string
+  roleId: string
+  request: string
+  model: string
+  runner: string
+  toolProfile: string
+  explanation: string
+  estimatedCost: number
+}
+
+export interface HexmorphPreviewResult {
+  started: boolean
+  stopped: number
+  url: string | null
+  revision: number | null
+  /** Why the candidate was not served, when the materializer refused it. */
+  blocking: string[]
 }
