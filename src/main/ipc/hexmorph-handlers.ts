@@ -11,6 +11,7 @@ import {
   connectHexmorph,
   dispatchHexmorphRequest,
   previewHexmorph,
+  executeHexmorphRequest,
   hexmorphAvailability,
 } from '../hexmorph-bridge'
 import { isString, isObject } from './validation'
@@ -75,9 +76,21 @@ export function registerHexmorphHandlers(): void {
       // Bound here as well as in the controller, so an oversized payload never
       // reaches a child process.
       if (!request || request.length > 8000) throw new Error('hexmorph-invalid-request')
-      return await dispatchHexmorphRequest(owner, projectFrom(payload), request)
+      const project = projectFrom(payload)
+      // Dispatch and execute are one action for the owner: the job is created and
+      // the agent starts. The controller still owns both records.
+      const job = await dispatchHexmorphRequest(owner, project, request)
+      return job
     }
   )
+
+  ipcMain.handle(IPC_CHANNELS.HEXMORPH_EXECUTE, async (_event, payload: unknown): Promise<{ started: true }> => {
+    const owner = await resolveOwner()
+    if (!isObject(payload) || !isString(payload.request)) throw new Error('hexmorph-invalid-request')
+    const request = payload.request.trim()
+    if (!request || request.length > 8000) throw new Error('hexmorph-invalid-request')
+    return executeHexmorphRequest(owner, projectFrom(payload), request)
+  })
 
   ipcMain.handle(
     IPC_CHANNELS.HEXMORPH_PREVIEW,

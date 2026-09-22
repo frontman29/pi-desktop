@@ -220,6 +220,8 @@ interface PiDesktopAPI {
     connect(): Promise<{ providers: string[]; models: number; version: number }>
     dispatch(projectId: string, request: string): Promise<HexmorphDispatchResult>
     preview(projectId: string, action: 'start' | 'stop'): Promise<HexmorphPreviewResult>
+    /** Run a request as a real agent turn, detached from this window. */
+    execute(projectId: string, request: string): Promise<{ started: true }>
   }
 
   council: {
@@ -373,6 +375,7 @@ const api: PiDesktopAPI = {
     connect: () => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_CONNECT),
     dispatch: (projectId: string, request: string) => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_DISPATCH, { projectId, request }),
     preview: (projectId: string, action: 'start' | 'stop') => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_PREVIEW, { projectId, action }),
+    execute: (projectId: string, request: string) => ipcRenderer.invoke(IPC_CHANNELS.HEXMORPH_EXECUTE, { projectId, request }),
   },
 
   pi: {

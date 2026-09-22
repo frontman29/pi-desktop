@@ -1,4 +1,4 @@
-import { execFile } from 'child_process'
+import { execFile, spawn } from 'child_process'
 import { existsSync } from 'fs'
 import { join } from 'path'
 import type {
@@ -22,6 +22,8 @@ import type {
  */
 
 export const HEXMORPH_ROOT = process.env.HEXMORPH_ROOT ?? '/home/rob/Documents/pi'
+/** This app's own root, where the executor script ships. */
+export const HEXMORPH_APP_ROOT = process.env.PI_DESKTOP_DIR ?? '/home/rob/Documents/pi-desktop'
 const PINNED_NODE = join(HEXMORPH_ROOT, 'var/toolchain/node-v24.21.0-linux-x64/bin/node')
 const WORKSPACE_MODULE = join(HEXMORPH_ROOT, 'dist/server/pi-extension/workspace.js')
 const MONITOR_MODULE = join(HEXMORPH_ROOT, 'dist/server/pi-extension/monitor.js')
@@ -151,6 +153,33 @@ export async function dispatchHexmorphRequest(
   `,
     { ownerId, projectId, request }
   )
+}
+
+/**
+ * Run a request as a real agent turn, detached.
+ *
+ * The job's durable record is the controller's, not this process's: the window
+ * can close, and the panel still reports the outcome from the controller. The
+ * child is fully detached and its streams are released so the app never blocks
+ * on it, and it is never awaited.
+ */
+export function executeHexmorphRequest(ownerId: string, projectId: string, request: string): { started: true } {
+  const availability = hexmorphAvailability()
+  if (!availability.available) {
+    throw new Error(`hexmorph-unavailable:${availability.reason}:${availability.detail}`)
+  }
+  // The full workflow, not a single agent: the pipeline decides which agents a
+  // request needs and runs the reviewers after the builder.
+  const script = join(__dirname, '../../scripts/hexmorph-pipeline.mjs')
+  const executor = existsSync(script) ? script : join(HEXMORPH_APP_ROOT, 'scripts/hexmorph-pipeline.mjs')
+  const child = spawn(PINNED_NODE, [executor, JSON.stringify({ ownerId, projectId, request })], {
+    cwd: HEXMORPH_ROOT,
+    detached: true,
+    stdio: 'ignore',
+    env: { PATH: '/usr/bin:/bin', HOME: process.env.HOME ?? '', HEXMORPH_ROOT },
+  })
+  child.unref()
+  return { started: true }
 }
 
 /** Start or stop the pinned Apache preview for a project. */

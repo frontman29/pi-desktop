@@ -201,6 +201,7 @@ export const IPC_CHANNELS = {
   HEXMORPH_CONNECT: 'hexmorph:connect',
   HEXMORPH_DISPATCH: 'hexmorph:dispatch',
   HEXMORPH_PREVIEW: 'hexmorph:preview',
+  HEXMORPH_EXECUTE: 'hexmorph:execute',
 } as const
 
 // ─── Pi Process Types ───────────────────────────────────────────────────────

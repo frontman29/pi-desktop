@@ -409,9 +409,12 @@ export function HexmorphPanel(): React.JSX.Element {
           const text = request.trim()
           if (!text || !state.projectId) return
           void run('dispatch', async () => {
-            const job = await window.piDesktop.hexmorph.dispatch(state.projectId!, text)
+            // The full workflow: the controller decides which agents this needs and
+            // runs the reviewers after the builder. Progress appears in Jobs and
+            // Events as each stage takes its own lease.
+            await window.piDesktop.hexmorph.execute(state.projectId!, text)
             setRequest('')
-            return `Dispatched to ${job.roleId} on ${job.runner}/${job.model} (${job.explanation})`
+            return 'Workflow started. Each agent appears in Jobs as it takes its turn.'
           })
         }}
       >
@@ -420,7 +423,7 @@ export function HexmorphPanel(): React.JSX.Element {
           onChange={(event) => setRequest(event.target.value)}
           placeholder={
             state.projectId
-              ? 'Describe a change, for example: Update the home-page headline to mention winter hours'
+              ? 'Describe a change — the right agents are chosen for you and reviewers run after'
               : 'Select a project first'
           }
           disabled={!state.projectId || busy !== null}
@@ -431,7 +434,7 @@ export function HexmorphPanel(): React.JSX.Element {
           disabled={!request.trim() || !state.projectId || busy !== null}
           className="flex items-center gap-1 rounded bg-accent px-3 py-1 text-[12px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-40"
         >
-          <Send className="h-3 w-3" /> Dispatch
+          <Send className="h-3 w-3" /> Run workflow
         </button>
       </form>
     </div>

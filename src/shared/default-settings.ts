@@ -29,7 +29,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   resumeLastSession: true,
   collapsedSessionGroups: [],
   sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
-  openToHomeOnLaunch: true,
+  // Boot Pi with the app rather than waiting for a first action from Home.
+  // Starting on the Home screen left the agent unstarted with no visible reason,
+  // which reads as a broken app rather than a deliberate lazy start.
+  openToHomeOnLaunch: false,
   runOnStartup: false,
   minimizeToTrayOnClose: false,
   hasSeenTrayHint: false,
